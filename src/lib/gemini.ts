@@ -40,7 +40,7 @@ ${textSnippets.join('\n')}`;
         }
     } catch (err: unknown) {
         // Capture specific error details for Vercel troubleshooting
-        const error = err as any;
+        const error = err as { status?: number | string; message?: string };
         const status = error?.status || 'Unknown Status';
         const msg = error?.message || String(err);
         const keySnippet = key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : 'MISSING';
