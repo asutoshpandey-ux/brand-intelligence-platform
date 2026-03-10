@@ -38,10 +38,11 @@ ${textSnippets.join('\n')}`;
                 brandVoiceSummary: 'Raw AI Output: ' + text.substring(0, 100),
             };
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
         // Capture specific error details for Vercel troubleshooting
-        const status = err?.status || 'Unknown Status';
-        const msg = err?.message || String(err);
+        const error = err as any;
+        const status = error?.status || 'Unknown Status';
+        const msg = error?.message || String(err);
         const keySnippet = key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : 'MISSING';
 
         console.error('Gemini API Error Detail:', { status, msg, keyUsed: keySnippet });
