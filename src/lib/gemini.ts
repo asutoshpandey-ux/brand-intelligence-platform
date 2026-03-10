@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function analyzeWithGemini(textSnippets: string[], apiKey?: string) {
-    const key = apiKey || "AIzaSyBBuBgNGi0WC8fqJk_QvVR7GRLOcsgzu-w";
+    const key = apiKey || process.env.GEMINI_API_KEY;
     if (!key) {
         throw new Error('No Gemini API key available. Set GEMINI_API_KEY or provide your own.');
     }
