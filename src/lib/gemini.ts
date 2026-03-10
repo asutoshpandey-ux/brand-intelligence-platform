@@ -32,28 +32,32 @@ ${textSnippets.join('\n')}`;
             return JSON.parse(cleaned);
         } catch {
             return {
-                personality: ['Analysis', 'Parsing', 'Error'],
+                personality: ['Response', 'Format', 'Error'],
                 tone: 'neutral',
-                targetAudience: 'The AI generated a response, but it was not in the expected format.',
-                brandVoiceSummary: 'Raw response: ' + text.substring(0, 200),
+                targetAudience: 'The AI answered but the response was malformed.',
+                brandVoiceSummary: 'Raw AI Output: ' + text.substring(0, 100),
             };
         }
-    } catch (err: unknown) {
-        // Handle Quota (429) and other API errors gracefully
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        const isQuotaExceeded = errorMessage.includes('429') || errorMessage.includes('quota');
+    } catch (err: any) {
+        // Capture specific error details for Vercel troubleshooting
+        const status = err?.status || 'Unknown Status';
+        const msg = err?.message || String(err);
+        const keySnippet = key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : 'MISSING';
 
-        console.error('Gemini API Error:', errorMessage);
+        console.error('Gemini API Error Detail:', { status, msg, keyUsed: keySnippet });
+
+        const is403 = msg.includes('403') || msg.toLowerCase().includes('location') || msg.toLowerCase().includes('supported');
+        const isQuota = msg.includes('429') || msg.toLowerCase().includes('quota');
 
         return {
-            personality: isQuotaExceeded ? ['Quota', 'Limit', 'Reached'] : ['Error', 'Analyzing', 'Voice'],
+            personality: isQuota ? ['Quota', 'Limit', 'Reached'] : (is403 ? ['Region', 'Access', 'Denied'] : ['Error', 'Analyzing', 'Voice']),
             tone: 'neutral',
-            targetAudience: isQuotaExceeded
-                ? 'Your Gemini API quota has been exceeded for the moment.'
-                : 'API Error: ' + errorMessage.substring(0, 100),
-            brandVoiceSummary: isQuotaExceeded
-                ? 'Please wait about 60 seconds or upgrade your API key in Google AI Studio to increase your limits.'
-                : `Troubleshooting: Check if GEMINI_API_KEY is correctly set in Vercel settings and that your key is valid for gemini-1.5-flash.`,
+            targetAudience: is403
+                ? 'GOOGLE ERROR: This Vercel region may not be supported by Gemini API.'
+                : `Error (${status}): ${msg.substring(0, 150)}`,
+            brandVoiceSummary: is403
+                ? 'Try changing your Vercel project region to "Washington, D.C. (iad1)" in Settings > Functions.'
+                : `Key used: ${keySnippet}. Check if your Gemini API key is active and supports gemini-1.5-flash.`,
         };
     }
 }
