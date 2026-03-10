@@ -23,6 +23,9 @@ Text snippets:
 ${textSnippets.join('\n')}`;
 
     try {
+        const vRegion = process.env.VERCEL_REGION || 'local';
+        console.log(`Running Gemini Analysis in region: ${vRegion}`);
+
         const result = await model.generateContent(prompt);
         const response = result.response;
         const text = response.text();
@@ -39,26 +42,27 @@ ${textSnippets.join('\n')}`;
             };
         }
     } catch (err: unknown) {
-        // Capture specific error details for Vercel troubleshooting
         const error = err as { status?: number | string; message?: string };
         const status = error?.status || 'Unknown Status';
         const msg = error?.message || String(err);
+        const vRegion = process.env.VERCEL_REGION || 'unknown';
         const keySnippet = key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : 'MISSING';
 
-        console.error('Gemini API Error Detail:', { status, msg, keyUsed: keySnippet });
+        console.error('Gemini API Error Detail:', { status, msg, region: vRegion });
 
+        // Check for common regional or permission errors
         const is403 = msg.includes('403') || msg.toLowerCase().includes('location') || msg.toLowerCase().includes('supported');
         const isQuota = msg.includes('429') || msg.toLowerCase().includes('quota');
 
         return {
-            personality: isQuota ? ['Quota', 'Limit', 'Reached'] : (is403 ? ['Region', 'Access', 'Denied'] : ['Error', 'Analyzing', 'Voice']),
+            personality: isQuota ? ['Quota', 'Limit', 'Reached'] : (is403 ? ['Region', 'Still', 'Blocked'] : ['Error', 'Analyzing', 'Voice']),
             tone: 'neutral',
             targetAudience: is403
-                ? 'GOOGLE ERROR: This Vercel region may not be supported by Gemini API.'
-                : `Error (${status}): ${msg.substring(0, 150)}`,
+                ? `STILL BLOCKED: Google sees you in "${vRegion}".`
+                : `Error (${status}): ${msg.substring(0, 100)}`,
             brandVoiceSummary: is403
-                ? 'Try changing your Vercel project region to "Washington, D.C. (iad1)" in Settings > Functions.'
-                : `Key used: ${keySnippet}. Check if your Gemini API key is active and supports gemini-1.5-flash.`,
+                ? 'Wait 5 mins for Vercel DNS to update, then Redeploy ONE MORE TIME. If it fails, your Google account may have a restriction.'
+                : `Region: ${vRegion}. Key: ${keySnippet}. Ensure API is enabled in Google AI Studio.`,
         };
     }
 }
