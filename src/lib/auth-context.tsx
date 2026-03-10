@@ -10,7 +10,7 @@ import {
     GoogleAuthProvider,
     signInWithPopup,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp, getDocFromServer } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth, getDb } from '@/lib/firebase';
 
 export interface UserData {
