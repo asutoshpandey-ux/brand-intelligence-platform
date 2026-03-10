@@ -4,12 +4,12 @@ import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
+  apiKey: "AIzaSyDRrSe8MOw-lIbqjXO7NRMPj0Uj99i9rdI",
+  authDomain: "speech-agent-5e755.firebaseapp.com",
+  projectId: "speech-agent-5e755",
+  storageBucket: "speech-agent-5e755.firebasestorage.app",
+  messagingSenderId: "159912098601",
+  appId: "1:159912098601:web:09f5b0d492e47ed6519538",
 };
 
 let app: FirebaseApp | undefined;
