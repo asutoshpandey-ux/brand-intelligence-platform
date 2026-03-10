@@ -31,10 +31,10 @@ ${textSnippets.join('\n')}`;
             return JSON.parse(cleaned);
         } catch {
             return {
-                personality: ['professional', 'modern', 'approachable'],
-                tone: 'casual',
-                targetAudience: 'Could not determine target audience from provided text.',
-                brandVoiceSummary: 'Brand voice analysis could not be parsed but was completed successfully.',
+                personality: ['Analysis', 'Parsing', 'Error'],
+                tone: 'neutral',
+                targetAudience: 'The AI generated a response, but it was not in the expected format.',
+                brandVoiceSummary: 'Raw response: ' + text.substring(0, 200),
             };
         }
     } catch (err: unknown) {
@@ -42,15 +42,17 @@ ${textSnippets.join('\n')}`;
         const errorMessage = err instanceof Error ? err.message : String(err);
         const isQuotaExceeded = errorMessage.includes('429') || errorMessage.includes('quota');
 
+        console.error('Gemini API Error:', errorMessage);
+
         return {
             personality: isQuotaExceeded ? ['Quota', 'Limit', 'Reached'] : ['Error', 'Analyzing', 'Voice'],
             tone: 'neutral',
             targetAudience: isQuotaExceeded
                 ? 'Your Gemini API quota has been exceeded for the moment.'
-                : 'An error occurred during AI analysis.',
+                : 'API Error: ' + errorMessage.substring(0, 100),
             brandVoiceSummary: isQuotaExceeded
                 ? 'Please wait about 60 seconds or upgrade your API key in Google AI Studio to increase your limits.'
-                : 'The system couldn\'t reach the AI engine. You might need to check your API key.',
+                : `Troubleshooting: Check if GEMINI_API_KEY is correctly set in Vercel settings and that your key is valid for gemini-1.5-flash.`,
         };
     }
 }
