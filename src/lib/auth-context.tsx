@@ -7,8 +7,10 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     signOut,
+    GoogleAuthProvider,
+    signInWithPopup,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, getDocFromServer } from 'firebase/firestore';
 import { getAuth, getDb } from '@/lib/firebase';
 
 export interface UserData {
@@ -24,6 +26,7 @@ interface AuthContextType {
     userData: UserData | null;
     loading: boolean;
     login: (email: string, password: string) => Promise<void>;
+    loginWithGoogle: () => Promise<void>;
     signup: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     refreshUserData: () => Promise<void>;
@@ -101,6 +104,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUserData(null);
     };
 
+    const loginWithGoogle = async () => {
+        const firebaseAuth = getAuth();
+        const database = getDb();
+        const provider = new GoogleAuthProvider();
+        const cred = await signInWithPopup(firebaseAuth, provider);
+
+        // Check if user document exists, if not create it
+        const userDocRef = doc(database, 'users', cred.user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (!userDoc.exists()) {
+            const newUser: UserData = {
+                email: cred.user.email || '',
+                role: 'free',
+                credits: 10,
+                createdAt: serverTimestamp(),
+            };
+            await setDoc(userDocRef, newUser);
+            setUserData(newUser);
+        } else {
+            setUserData(userDoc.data() as UserData);
+        }
+    };
+
     const refreshUserData = async () => {
         if (user) {
             await fetchUserData(user.uid);
@@ -108,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, userData, loading, login, signup, logout, refreshUserData }}>
+        <AuthContext.Provider value={{ user, userData, loading, login, loginWithGoogle, signup, logout, refreshUserData }}>
             {children}
         </AuthContext.Provider>
     );
